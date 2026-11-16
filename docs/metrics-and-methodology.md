@@ -1,17 +1,15 @@
 # Metrics and methodology
 
-CSV columns: suite, mode, latency_p50_ms, latency_p95_ms, latency_p99_ms, kernel_gpu_time_ms, total_throughput, throughput_unit, background_time_ms, sm_allocation.
+CSV columns: suite, mode, iterations, latency_p50_ms, latency_p95_ms, latency_p99_ms, kernel_gpu_time_ms, throughput_value, throughput_unit, background_time_ms, critical_sm_count, background_sm_count, critical_sm_ratio, background_sm_ratio.
 
-The suite column uses descriptive values: primary_vs_green_context_comparison, sm_partition_sweep, compute_memory_throughput, multi_green_context_concurrency, and workqueue_scope_comparison.
+- Latency is host submit-to-completion measured with steady_clock; warm-up samples are excluded.
+- P50/P95/P99 are calculated over measured samples. Use at least 20 iterations for exploratory tail latency and more for stable estimates.
+- Kernel GPU time uses CUDA Driver API events.
+- Critical throughput is completed critical kernels per second, based on median host latency.
+- Background time is host-observed time until the background completion event.
+- SM counts are queried through cuGreenCtxGetDevResource; ratios are relative to physical device SM count.
+- NA means not applicable or not measured, never zero.
 
-- Latency is host submit-to-complete measured with steady_clock.
-- Kernel GPU time is measured with CUDA events.
-- Critical throughput is completed critical kernels per second; compute/memory probes report GFLOP/s and nominal GB/s.
-- Background time is host-observed time until background events complete.
-- SM allocation is queried from the created Green Context; primary baseline is Full GPU / Unpartitioned.
+Three warm-up iterations are used. clock64() generates synthetic work. Triad counts two reads plus one write (12 nominal bytes/element), not a strict DRAM microbenchmark. Primary Context is full-device and not an equal-SM-budget comparison. Green Contexts do not guarantee concurrent execution or forward progress; verify overlap with Nsight Systems.
 
-NA means not applicable or not measured; do not interpret it as zero. The busy-wait kernel uses clock64() as a workload generator, not a precision timer. Test 3's triad counts two reads plus one write (12 nominal bytes/element) and uses a 64 Mi-element working set; it is a bandwidth probe, not a strict DRAM microbenchmark.
-
-The multi-Green-Context suite submits background work to distinct Green Context streams before the critical work. Resource partitioning alone does not prove simultaneous execution; verify overlap using Nsight Systems.
-
-The Primary Context baseline has full-GPU access and is not an equal-SM-budget comparison against partitioned Green Contexts. Green Contexts do not guarantee concurrency or forward progress.
+For multi-Green-Context runs, background_sm_count is the sum of other provisioned Green Context partitions, not active SM occupancy.
