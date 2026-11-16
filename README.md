@@ -9,9 +9,9 @@ CUDA 13.1+ benchmark suite for NVIDIA Green Context SM partitioning and workqueu
 - CMake 3.24+ and C++17 compiler
 
 ## Build and run
-    ./scripts/build.sh
+    bash scripts/build.sh
     ./build/greenctx_bench --help
-    ./scripts/run_all.sh
+    bash scripts/run_all.sh
 
 Run one suite with --test 1 through --test 5. Select device and sample count using --device N and --iterations N. CSV output can be changed with --csv FILE.
 
@@ -27,7 +27,7 @@ Run one suite with --test 1 through --test 5. Select device and sample count usi
 - Requested SM ratios can be quantized or rejected by architecture alignment constraints.
 - GreenCtxBalanced is a best-effort workqueue-sharing policy, not guaranteed disjoint queues.
 - Green Contexts do not guarantee concurrent execution or forward progress.
-- Verify actual overlap with Nsight Systems using scripts/run_nsys.sh.
+- Verify actual overlap with Nsight Systems using bash scripts/run_nsys.sh.
 - clock64() busy-wait is a workload generator, not a precision timer.
 - Memory triad is a bandwidth probe, not a strict DRAM microbenchmark.
 
