@@ -36,3 +36,13 @@ Common options: --device N, --iterations N, --csv FILE.
 | workqueue-scope | runWorkqueueScopeComparison | DeviceCtx versus GreenCtxBalanced with two disjoint SM partitions |
 
 Latency suites perform three warm-up launches, then collect --iterations samples. P50/P95/P99 exclude warm-ups. CSV records both critical/background SM counts and ratios. Primary Context is unpartitioned and not an equal-SM-budget comparison. GreenCtxBalanced is best-effort, not a guarantee of concurrency or forward progress. Verify overlap with Nsight Systems. clock64() is synthetic work, not a precision timer. Memory triad is a bandwidth probe, not a strict DRAM microbenchmark.
+
+## Kernel entry points
+| Kernel symbol | Role |
+|---|---|
+| `background_kernel` | Synthetic background workload used to create competing GPU activity |
+| `critical_kernel` | Synthetic latency-sensitive workload measured by the benchmark |
+| `fma_throughput_kernel` | FP32 FMA compute-throughput probe |
+| `memory_triad_kernel` | Memory-triad bandwidth probe |
+
+The background and critical entry points currently share the same synthetic clock-cycle workload implementation; they are separate PTX entry points so host-side launch roles are explicit, following the naming convention used by the earlier ZIP prototype.
