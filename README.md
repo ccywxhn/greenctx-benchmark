@@ -1,20 +1,23 @@
-# Green Context Benchmark V3
+# Green Context Benchmark V3 — CUDA Driver API
 
-CUDA 13.1+ benchmark suite for NVIDIA Green Context SM partitioning and workqueue scope.
+A CUDA Driver API benchmark for NVIDIA Green Context SM partitioning and Work Queue sharing scopes.
+
+## API policy
+The host benchmark uses the CUDA Driver API for device discovery, resource partitioning, Green Context creation, context conversion, stream creation, module loading, kernel launch, events, and device memory. It does not call CUDA Runtime API functions or use Runtime kernel-launch syntax.
+
+The project targets CUDA Toolkit 13.1+ because it exercises Work Queue configuration scopes.
 
 ## Requirements
 - Linux x86-64
-- NVIDIA GPU and compatible driver
+- NVIDIA GPU and compatible NVIDIA driver
 - CUDA Toolkit 13.1+
 - CMake 3.24+ and C++17 compiler
 
 ## Build
     bash scripts/build.sh
 
-## Run all benchmark suites
+## Run
     ./build/greenctx_bench --suite all
-
-## Run one suite by its function
     ./build/greenctx_bench --suite primary-vs-green
     ./build/greenctx_bench --suite sm-partition-sweep
     ./build/greenctx_bench --suite compute-memory-throughput
@@ -23,23 +26,13 @@ CUDA 13.1+ benchmark suite for NVIDIA Green Context SM partitioning and workqueu
 
 Common options: --device N, --iterations N, --csv FILE.
 
-## Benchmark suite overview
-
-| Suite selector | Function | What it measures |
+## Suites
+| Selector | Function | Purpose |
 |---|---|---|
-| primary-vs-green | runPrimaryVsGreenContextComparison | Primary Context two-stream baseline versus two SM-partitioned Green Contexts |
-| sm-partition-sweep | runSmPartitionSweep | Sweep critical/background SM allocation from 20% to 80% |
-| compute-memory-throughput | runComputeAndMemoryThroughput | FMA compute throughput and memory-triad bandwidth probes |
-| multi-green-context | runMultiGreenContextConcurrency | 2/4/8 independent Green Contexts, background submission and critical-task latency |
-| workqueue-scope | runWorkqueueScopeComparison | DeviceCtx versus GreenCtxBalanced Work Queue sharing scope |
+| primary-vs-green | runPrimaryVsGreenContextComparison | Full-device Primary Context baseline versus two disjoint SM Green Contexts |
+| sm-partition-sweep | runSmPartitionSweep | Sweep critical Green Context SM share from 20% through 80% |
+| compute-memory-throughput | runComputeAndMemoryThroughput | Driver-launched FMA and memory-triad probes |
+| multi-green-context | runMultiGreenContextConcurrency | Critical latency while 2/4/8 Green Contexts receive background work |
+| workqueue-scope | runWorkqueueScopeComparison | DeviceCtx versus GreenCtxBalanced with two disjoint SM partitions |
 
-## Interpretation
-- Primary baseline is Full GPU / Unpartitioned; it is not an equal-SM-budget comparison.
-- Requested SM ratios can be quantized or rejected by architecture alignment constraints.
-- GreenCtxBalanced is a best-effort workqueue-sharing policy, not guaranteed disjoint queues.
-- Green Contexts do not guarantee concurrent execution or forward progress.
-- Verify actual overlap with Nsight Systems using bash scripts/run_nsys.sh.
-- clock64() busy-wait is a workload generator, not a precision timer.
-- Memory triad is a bandwidth probe, not a strict DRAM microbenchmark.
-
-See docs/architecture.md, docs/metrics-and-methodology.md, docs/api-compatibility.md and tests/README.md.
+Latency suites perform three warm-up launches, then collect --iterations samples. P50/P95/P99 exclude warm-ups. CSV records both critical/background SM counts and ratios. Primary Context is unpartitioned and not an equal-SM-budget comparison. GreenCtxBalanced is best-effort, not a guarantee of concurrency or forward progress. Verify overlap with Nsight Systems. clock64() is synthetic work, not a precision timer. Memory triad is a bandwidth probe, not a strict DRAM microbenchmark.
