@@ -9,7 +9,7 @@ The project targets CUDA Toolkit 13.1+ because it exercises Work Queue configura
 
 ## Requirements
 - Linux x86-64
-- NVIDIA GPU and compatible NVIDIA driver
+- NVIDIA GPU with compute capability 7.5 or newer and compatible NVIDIA driver
 - CUDA Toolkit 13.1+
 - CMake 3.24+ and C++17 compiler
 
