@@ -1,25 +1,16 @@
-# Benchmark suites
+# Benchmark suites (CUDA Driver API)
 
-Use semantic suite selectors instead of ordinal test numbers.
+All host-side CUDA operations use the Driver API.
 
 | CLI selector | C++ function | Purpose |
 |---|---|---|
-| `primary-vs-green` | `runPrimaryVsGreenContextComparison()` | Compare a Primary Context with two streams against two Green Contexts with separate SM resource partitions. |
-| `sm-partition-sweep` | `runSmPartitionSweep()` | Sweep the critical-context SM share from 20% through 80%, assigning the remainder to background work. |
-| `compute-memory-throughput` | `runComputeAndMemoryThroughput()` | Probe FMA compute throughput and memory-triad bandwidth. |
-| `multi-green-context` | `runMultiGreenContextConcurrency()` | Create 2, 4, and 8 Green Contexts; submit background kernels to independent contexts before critical work. |
-| `workqueue-scope` | `runWorkqueueScopeComparison()` | Compare DeviceCtx and GreenCtxBalanced Work Queue configuration scopes. |
+| primary-vs-green | runPrimaryVsGreenContextComparison() | Unpartitioned Primary Context baseline versus two Green Contexts with disjoint SM partitions. |
+| sm-partition-sweep | runSmPartitionSweep() | Critical/background SM allocation sweep from 20% to 80%. |
+| compute-memory-throughput | runComputeAndMemoryThroughput() | Driver-launched FMA compute and memory-triad probes. |
+| multi-green-context | runMultiGreenContextConcurrency() | 2, 4, and 8 Green Contexts with repeated critical latency samples under background work. |
+| workqueue-scope | runWorkqueueScopeComparison() | DeviceCtx versus GreenCtxBalanced Work Queue scopes, with two distinct SM partitions. |
 
-Run all suites with:
+Run all suites:
+    ./build/greenctx_bench --suite all --iterations 20
 
-```bash
-./build/greenctx_bench --suite all
-```
-
-Run a specific suite, for example:
-
-```bash
-./build/greenctx_bench --suite sm-partition-sweep
-```
-
-Unsupported legal partition sizes or Work Queue configurations should be reported as SKIP, not interpreted as zero-valued measurements.
+Unsupported partitions or Work Queue configurations should be reported as SKIP/errors, not interpreted as zero. Multi-context background SM count is the sum of other provisioned partitions, not proof of simultaneous activity.
